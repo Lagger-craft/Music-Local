@@ -1,0 +1,729 @@
+/* ---------------------------------------------------------------
+   Retro deck global styles: tokens and look from wireframes/retro.html.
+   Cream + orange plastic, chunky bevels, VU meters, LCD strip,
+   index-card rows. Same palette extended to all side-panel views.
+----------------------------------------------------------------*/
+:root {
+  --plastic: #efe3cf;
+  --plastic-dark: #d9c7ab;
+  --orange: #ff6b1a;
+  --ink: #2b2118;
+  --lcd-bg: #1d2b1f;
+  --lcd-text: #8df08d;
+  --card: #fff8ec;
+  --card-hover: #ffe6c9;
+  --cassette-bg: #35281c;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: 'Verdana', 'Geneva', sans-serif;
+  /* Wood-grain-ish backdrop */
+  background:
+    repeating-linear-gradient(90deg, #4a3524 0 40px, #513a28 40px 80px);
+}
+
+/* ---------------------------------------------------- Layout */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  padding: 40px 16px;
+  flex-wrap: wrap;
+}
+
+.layout-center {
+  align-items: center;
+  min-height: 100vh;
+}
+
+.side-panel {
+  flex: 1 1 420px;
+  max-width: 560px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px 12px;
+  }
+  .side-panel {
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------------- Deck body */
+.deck {
+  width: 100%;
+  max-width: 460px;
+  background: linear-gradient(180deg, var(--plastic), var(--plastic-dark));
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.25),
+    8px 8px 0 rgba(0, 0, 0, 0.45);
+  padding: 18px;
+  animation: wobble 0.5s ease-out;
+}
+
+@keyframes wobble {
+  from { transform: scale(0.96) rotate(-1deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.brand {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+}
+
+/* ------------------------------------------- Cassette window */
+.cassette {
+  position: relative;
+  background: var(--cassette-bg);
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  overflow: hidden;
+}
+
+.cassette::before {
+  content: 'A-SIDE';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--plastic);
+  letter-spacing: 0.3em;
+}
+
+.reel {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(var(--plastic) 0 12deg, transparent 12deg 30deg),
+    radial-gradient(circle, var(--cassette-bg) 30%, var(--plastic) 31%);
+  border: 3px solid var(--plastic);
+  animation: spin 3s linear infinite;
+  animation-play-state: paused;
+}
+
+.playing .reel {
+  animation-play-state: running;
+}
+
+.reel.slow {
+  animation-duration: 6s;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.tape {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
+  height: 6px;
+  background: var(--orange);
+  border: 1px solid var(--ink);
+}
+
+/* ------------------------------------------------ LCD strip */
+.lcd {
+  margin-top: 14px;
+  background: var(--lcd-bg);
+  border: 3px solid var(--ink);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--lcd-text);
+  font-family: 'Courier New', monospace;
+  text-shadow: 0 0 6px rgba(141, 240, 141, 0.8);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.lcd .now {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.lcd .marquee {
+  display: inline-block;
+  font-size: 12px;
+  padding-left: 100%;
+  animation: scroll 10s linear infinite;
+}
+
+.lcd .marquee-static {
+  font-size: 12px;
+}
+
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+/* ----------------------------------------------- VU meters */
+.meters {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.meters .bar {
+  flex: 1;
+  height: 22px;
+  background: #241a12;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.meters .bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8%;
+  background: linear-gradient(90deg, #58d158 0 70%, #ffd23f 70% 90%, #ff3b30 90%);
+  transition: width 0.15s ease-out;
+}
+
+/* ------------------------------------- Progress (tape counter) */
+.counter {
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.counter .rail,
+.upload-progress .rail {
+  height: 12px;
+  background: var(--cassette-bg);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  position: relative;
+}
+
+.counter .rail .pos,
+.upload-progress .rail .pos {
+  position: absolute;
+  top: -4px;
+  left: 0%;
+  width: 14px;
+  height: 16px;
+  background: var(--orange);
+  border: 2px solid var(--ink);
+  transition: left 0.2s linear;
+}
+
+.counter .labels,
+.upload-progress .labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+/* ----------------------------------------- Transport buttons */
+.transport {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.transport button {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 12px 0;
+  background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  box-shadow: 0 4px 0 var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.transport button:hover:not(:disabled) {
+  background: #fff;
+}
+
+.transport button:active:not(:disabled),
+.transport button.pressed {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.transport button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.transport .rec {
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.transport .on {
+  background: linear-gradient(180deg, #b6ff9e, #58d158);
+  color: #fff;
+}
+
+/* ------------------------------------ Index cards (track rows) */
+.index {
+  margin-top: 16px;
+}
+
+.index h2,
+.panel-heading {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.panel-subheading {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 12px 0 6px;
+}
+
+.index ul {
+  list-style: none;
+}
+
+.index li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  padding: 8px 10px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-bottom: none;
+  cursor: pointer;
+  transition: background 0.12s ease, padding-left 0.12s ease;
+}
+
+.index li:last-child {
+  border-bottom: 2px solid var(--ink);
+}
+
+.index li:hover {
+  background: var(--card-hover);
+  padding-left: 16px;
+}
+
+.index li.active {
+  background: var(--orange);
+  color: #fff;
+}
+
+.index li.used {
+  opacity: 0.6;
+}
+
+.index li .row-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.index li .row-no {
+  margin-right: 6px;
+}
+
+.index li .row-artist {
+  opacity: 0.7;
+}
+
+.index li .row-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.index li .row-dur {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.empty-note {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  padding: 10px;
+  background: var(--card);
+  border: 2px dashed var(--ink);
+}
+
+/* --------------------------------------------- Side-panel chrome */
+.plastic-card {
+  background: linear-gradient(180deg, var(--plastic), var(--plastic-dark));
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.25),
+    8px 8px 0 rgba(0, 0, 0, 0.45);
+  padding: 18px;
+}
+
+.panel-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  position: relative;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  box-shadow: 0 4px 0 var(--ink);
+  cursor: pointer;
+}
+
+.tab input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab.on {
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.user-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------- Form bits */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.input,
+.select {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  padding: 8px 10px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid var(--orange);
+  outline-offset: 1px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  box-shadow: 0 4px 0 var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: #fff;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.mini-btn {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 6px;
+  background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mini-btn:hover:not(:disabled) {
+  background: #fff;
+}
+
+.mini-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.chip {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip.on {
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  color: #fff;
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.heart {
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 4px;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.index li.active .heart {
+  color: #fff;
+}
+
+.heart.on {
+  color: var(--orange);
+}
+
+.index li.active .heart.on {
+  color: #fff;
+}
+
+/* --------------------------------------------------- Upload panel */
+.upload-panel .panel-heading,
+.library-panel .panel-heading,
+.playlists-panel .panel-heading,
+.playlist-tracks .panel-heading {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.upload-progress {
+  margin-top: 12px;
+}
+
+.upload-error {
+  margin-top: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #a3200e;
+  background: #ffe6c9;
+  border: 2px solid var(--ink);
+  padding: 8px 10px;
+}
+
+.upload-summary {
+  margin-top: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  padding: 8px 10px;
+}
+
+.summary-line {
+  font-weight: bold;
+}
+
+.summary-list {
+  margin-top: 6px;
+  padding-left: 16px;
+}
+
+.summary-list li {
+  list-style: disc;
+  margin-bottom: 2px;
+}
+
+/* --------------------------------------------------- Library panel */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.filter-row .search {
+  flex: 1 1 100%;
+}
+
+.stats-line {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+/* ------------------------------------------------- Playlists panel */
+.create-row,
+.heading-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.create-row .input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.heading-row {
+  justify-content: space-between;
+}
+
+.heading-row .panel-heading {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.heading-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.track-picker {
+  margin-top: 14px;
+  border-top: 2px solid var(--ink);
+  padding-top: 8px;
+}
+
+/* --------------------------------------------------- Login screen */
+.login-deck {
+  max-width: 420px;
+}
+
+.login-form {
+  margin-top: 16px;
+}
+
+.login-error {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #a3200e;
+  background: #ffe6c9;
+  border: 2px solid var(--ink);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.login-submit {
+  width: 100%;
+}
+
+.boot-splash {
+  max-width: 420px;
+}
