@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wireframe 03 — Retro Deck</title>
+<style>
+  /* ---------------------------------------------------------------
+     Wireframe 3: Retro cassette deck (Y2K / skeuomorphic)
+     Cream + orange plastic, chunky bevels, VU meters, LCD strip.
+  ----------------------------------------------------------------*/
+  :root {
+    --plastic: #efe3cf;
+    --plastic-dark: #d9c7ab;
+    --orange: #ff6b1a;
+    --ink: #2b2118;
+    --lcd-bg: #1d2b1f;
+    --lcd-text: #8df08d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    /* Wood-grain-ish backdrop */
+    background:
+      repeating-linear-gradient(90deg, #4a3524 0 40px, #513a28 40px 80px);
+    font-family: "Verdana", "Geneva", sans-serif;
+    color: var(--ink);
+  }
+
+  .deck {
+    width: 100%;
+    max-width: 460px;
+    background: linear-gradient(180deg, var(--plastic), var(--plastic-dark));
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 2px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -6px 12px rgba(0, 0, 0, 0.25),
+      8px 8px 0 rgba(0, 0, 0, 0.45);
+    padding: 18px;
+    animation: wobble 0.5s ease-out;
+  }
+  @keyframes wobble {
+    from { transform: scale(0.96) rotate(-1deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .brand {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  /* Cassette window with spinning reels */
+  .cassette {
+    position: relative;
+    background: #35281c;
+    border: 3px solid var(--ink);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    overflow: hidden;
+  }
+  .cassette::before {
+    content: "A-SIDE";
+    position: absolute;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: var(--plastic);
+    letter-spacing: 0.3em;
+  }
+  .reel {
+    width: 74px; height: 74px;
+    border-radius: 50%;
+    background:
+      repeating-conic-gradient(var(--plastic) 0 12deg, transparent 12deg 30deg),
+      radial-gradient(circle, #35281c 30%, var(--plastic) 31%);
+    border: 3px solid var(--plastic);
+    animation: spin 3s linear infinite;
+    animation-play-state: paused;
+  }
+  .playing .reel { animation-play-state: running; }
+  .reel.slow { animation-duration: 6s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Tape strip between reels */
+  .tape {
+    position: absolute;
+    left: 16px; right: 16px;
+    bottom: 14px;
+    height: 6px;
+    background: var(--orange);
+    border: 1px solid var(--ink);
+  }
+
+  /* LCD readout */
+  .lcd {
+    margin-top: 14px;
+    background: var(--lcd-bg);
+    border: 3px solid var(--ink);
+    border-radius: 4px;
+    padding: 10px 12px;
+    color: var(--lcd-text);
+    font-family: "Courier New", monospace;
+    text-shadow: 0 0 6px rgba(141, 240, 141, 0.8);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .lcd .now  { font-size: 13px; font-weight: bold; }
+  .lcd .marquee {
+    display: inline-block;
+    font-size: 12px;
+    padding-left: 100%;
+    animation: scroll 10s linear infinite;
+  }
+  @keyframes scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+  }
+
+  /* VU meters */
+  .meters { display: flex; gap: 6px; margin-top: 12px; }
+  .meters .bar {
+    flex: 1;
+    height: 22px;
+    background: #241a12;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .meters .bar i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 15%;
+    background: linear-gradient(90deg, #58d158 0 70%, #ffd23f 70% 90%, #ff3b30 90%);
+    transition: width 0.15s ease-out;
+  }
+
+  /* Progress as tape counter */
+  .counter { margin-top: 12px; cursor: pointer; }
+  .counter .rail {
+    height: 12px;
+    background: #35281c;
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    position: relative;
+  }
+  .counter .rail .pos {
+    position: absolute;
+    top: -4px;
+    left: 0%;
+    width: 14px; height: 16px;
+    background: var(--orange);
+    border: 2px solid var(--ink);
+    transition: left 0.2s linear;
+  }
+  .counter .labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    margin-top: 5px;
+  }
+
+  /* Chunky transport buttons */
+  .transport {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .transport button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 12px 0;
+    background: linear-gradient(180deg, #fff8ec, var(--plastic-dark));
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    box-shadow: 0 4px 0 var(--ink);
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .transport button:hover { background: #fff; }
+  .transport button:active,
+  .transport button.pressed {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+  .transport .rec {
+    background: linear-gradient(180deg, #ff8f52, var(--orange));
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  }
+  .transport .on { background: linear-gradient(180deg, #b6ff9e, #58d158); }
+
+  /* Playlist as index cards */
+  .index { margin-top: 16px; }
+  .index h2 {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .index li {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    padding: 8px 10px;
+    background: #fff8ec;
+    border: 2px solid var(--ink);
+    border-bottom: none;
+    cursor: pointer;
+    transition: background 0.12s ease, padding-left 0.12s ease;
+  }
+  .index li:last-child { border-bottom: 2px solid var(--ink); }
+  .index li:hover { background: #ffe6c9; padding-left: 16px; }
+  .index li.active { background: var(--orange); color: #fff; }
+</style>
+</head>
+<body>
+  <main class="deck" id="player">
+    <div class="brand">
+      <span>Tape-o-matic 3000</span>
+      <span>Stereo / Dolby-ish</span>
+    </div>
+
+    <div class="cassette">
+      <div class="reel"></div>
+      <div class="reel slow"></div>
+      <div class="tape"></div>
+    </div>
+
+    <div class="lcd">
+      <div class="now" id="status">STOP &#9654; TRACK 01</div>
+      <div class="marquee" id="marquee">Now playing: Analog Sunset — by Dust &amp; Rollers ...</div>
+    </div>
+
+    <div class="meters" aria-hidden="true">
+      <div class="bar"><i id="vu1"></i></div>
+      <div class="bar"><i id="vu2"></i></div>
+      <div class="bar"><i id="vu3"></i></div>
+    </div>
+
+    <div class="counter" id="progress">
+      <div class="rail"><div class="pos" id="pos"></div></div>
+      <div class="labels"><span id="cur">0:00</span><span id="dur">3:48</span></div>
+    </div>
+
+    <div class="transport">
+      <button id="prev" title="Rewind">&#9664;&#9664;</button>
+      <button id="play" title="Play/Pause">&#9654;</button>
+      <button id="stop" title="Stop">&#9632;</button>
+      <button id="next" title="Forward">&#9654;&#9654;</button>
+      <button id="like" title="Favorite">&#9825;</button>
+    </div>
+
+    <div class="index">
+      <h2>Playlist Index</h2>
+      <ul id="list"></ul>
+    </div>
+  </main>
+
+<script>
+  // Retro deck logic: transport controls, VU meter animation, tape counter, playlist.
+  const tracks = [
+    { title: "Analog Sunset",  artist: "Dust & Rollers",        dur: 228 },
+    { title: "Dubplate Dream", artist: "The Feedback Twins",    dur: 199 },
+    { title: "VHS Summer",     artist: "Channel 8",             dur: 245 },
+    { title: "Rust Belt Radio", artist: "Motorik Line",         dur: 184 },
+  ];
+
+  const player  = document.getElementById("player");
+  const statusEl = document.getElementById("status");
+  const marquee  = document.getElementById("marquee");
+  const listEl   = document.getElementById("list");
+  const posEl    = document.getElementById("pos");
+  const curEl    = document.getElementById("cur");
+  const durEl    = document.getElementById("dur");
+  const playBtn  = document.getElementById("play");
+  const stopBtn  = document.getElementById("stop");
+  const likeBtn  = document.getElementById("like");
+  const vuBars   = [document.getElementById("vu1"), document.getElementById("vu2"), document.getElementById("vu3")];
+
+  let index = 0, playing = false, elapsed = 0, liked = false, vuTimer = null;
+
+  const fmt = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+  function renderList() {
+    listEl.innerHTML = "";
+    tracks.forEach((t, i) => {
+      const li = document.createElement("li");
+      if (i === index) li.classList.add("active");
+      li.innerHTML = `<span>${String(i + 1).padStart(2, "0")} ${t.title}</span><span>${fmt(t.dur)}</span>`;
+      li.addEventListener("click", () => { index = i; elapsed = 0; load(); startPlay(); });
+      listEl.appendChild(li);
+    });
+  }
+
+  function load() {
+    const t = tracks[index];
+    marquee.textContent = `Now playing: ${t.title} — by ${t.artist} ...`;
+    durEl.textContent = fmt(t.dur);
+    renderList();
+    setStatus();
+    update();
+  }
+
+  function setStatus() {
+    const verb = playing ? "PLAY &#9654;" : elapsed > 0 ? "PAUSE &#10074;&#10074;" : "STOP &#9632;";
+    statusEl.innerHTML = `${verb} TRACK ${String(index + 1).padStart(2, "0")}`;
+  }
+
+  function update() {
+    const t = tracks[index];
+    const pct = Math.min((elapsed / t.dur) * 100, 100);
+    posEl.style.left = `calc(${pct}% - ${pct * 0.14}px)`;
+    curEl.textContent = fmt(elapsed);
+    if (elapsed >= t.dur) step(1);
+  }
+
+  function step(dir) {
+    index = (index + dir + tracks.length) % tracks.length;
+    elapsed = 0;
+    load();
+  }
+
+  function startVu() {
+    stopVu();
+    vuTimer = setInterval(() => {
+      vuBars.forEach((b) => {
+        b.style.width = playing ? 20 + Math.random() * 78 + "%" : "8%";
+      });
+    }, 140);
+  }
+  function stopVu() { if (vuTimer) clearInterval(vuTimer); vuTimer = null; }
+
+  function startPlay() {
+    playing = true;
+    player.classList.add("playing");
+    playBtn.classList.add("pressed");
+    playBtn.innerHTML = "&#10074;&#10074;";
+    setStatus();
+    startVu();
+  }
+  function pausePlay() {
+    playing = false;
+    player.classList.remove("playing");
+    playBtn.classList.remove("pressed");
+    playBtn.innerHTML = "&#9654;";
+    setStatus();
+    stopVu();
+    vuBars.forEach((b) => (b.style.width = "8%"));
+  }
+
+  playBtn.addEventListener("click", () => (playing ? pausePlay() : startPlay()));
+  stopBtn.addEventListener("click", () => { pausePlay(); elapsed = 0; update(); setStatus(); });
+  document.getElementById("next").addEventListener("click", () => step(1));
+  document.getElementById("prev").addEventListener("click", () => step(-1));
+  likeBtn.addEventListener("click", () => {
+    liked = !liked;
+    likeBtn.classList.toggle("on", liked);
+    likeBtn.innerHTML = liked ? "&#9829;" : "&#9825;";
+  });
+  document.getElementById("progress").addEventListener("click", (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    elapsed = ((e.clientX - rect.left) / rect.width) * tracks[index].dur;
+    update();
+  });
+
+  // Tape counter clock.
+  setInterval(() => {
+    if (playing) { elapsed++; update(); }
+  }, 1000);
+
+  load();
+  startVu();
+</script>
+</body>
+</html>

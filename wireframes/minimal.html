@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wireframe 01 — Minimal Player</title>
+<style>
+  /* ---------------------------------------------------------------
+     Wireframe 1: Minimal / Swiss monochrome
+     Thin rules, lots of whitespace, one accent color.
+  ----------------------------------------------------------------*/
+  :root {
+    --bg: #fafafa;
+    --ink: #111;
+    --muted: #9a9a9a;
+    --line: #e4e4e4;
+    --accent: #ff3b30;
+    --radius: 2px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 16px;
+  }
+  .frame {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--line);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .frame header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .frame header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.4; }
+  }
+
+  /* Cover */
+  .cover {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    margin: 24px 24px 0;
+    border: 1px solid var(--line);
+    background:
+      repeating-linear-gradient(45deg, #f2f2f2 0 12px, #fff 12px 24px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .cover .label {
+    padding: 14px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.85);
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+  /* Equalizer overlay, animated only while playing */
+  .eq {
+    position: absolute;
+    top: 14px; right: 14px;
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 28px;
+  }
+  .eq span {
+    width: 3px;
+    background: var(--ink);
+    height: 30%;
+    animation: bar 0.9s ease-in-out infinite;
+    animation-play-state: paused;
+  }
+  .playing .eq span { animation-play-state: running; }
+  .eq span:nth-child(2) { animation-delay: 0.15s; }
+  .eq span:nth-child(3) { animation-delay: 0.30s; }
+  .eq span:nth-child(4) { animation-delay: 0.45s; }
+  .eq span:nth-child(5) { animation-delay: 0.60s; }
+  @keyframes bar {
+    0%, 100% { height: 20%; }
+    50%      { height: 100%; }
+  }
+
+  /* Track info */
+  .info { padding: 20px 24px 0; }
+  .info h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .info p  { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Progress */
+  .progress {
+    margin: 18px 24px 0;
+    cursor: pointer;
+  }
+  .track {
+    height: 2px;
+    background: var(--line);
+    position: relative;
+  }
+  .track .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.2s linear;
+  }
+  .track .fill::after {
+    content: "";
+    position: absolute;
+    right: -4px; top: -3px;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    padding: 22px 24px;
+  }
+  .controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .controls button:hover { transform: translateY(-2px); color: var(--accent); }
+  .controls .play {
+    width: 56px; height: 56px;
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .controls .play:hover { background: var(--ink); color: #fff; }
+  .like.on { color: var(--accent); }
+
+  /* Playlist */
+  .playlist { border-top: 1px solid var(--line); }
+  .playlist li {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 24px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: background 0.15s ease, padding-left 0.15s ease;
+  }
+  .playlist li:hover { background: #f6f6f6; padding-left: 30px; }
+  .playlist li.active { color: var(--accent); }
+  .playlist li .num { color: var(--muted); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <main class="frame" id="player">
+    <header>
+      <span>Now Playing</span>
+      <span class="dot" aria-hidden="true"></span>
+    </header>
+
+    <div class="cover">
+      <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="label" id="coverLabel">Cover Art Placeholder</div>
+    </div>
+
+    <div class="info">
+      <h1 id="title">Midnight Draft</h1>
+      <p id="artist">The Static Hours — Parallel Lines</p>
+    </div>
+
+    <div class="progress" id="progress">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="times"><span id="cur">0:00</span><span id="dur">3:24</span></div>
+    </div>
+
+    <div class="controls">
+      <button id="prev" aria-label="Previous">&#9664;&#9664;</button>
+      <button class="play" id="play" aria-label="Play">&#9654;</button>
+      <button id="next" aria-label="Next">&#9654;&#9654;</button>
+      <button class="like" id="like" aria-label="Like">&#9825;</button>
+    </div>
+
+    <ul class="playlist" id="playlist"></ul>
+  </main>
+
+<script>
+  // Minimal logic: playlist, play/pause, seek, like.
+  const tracks = [
+    { title: "Midnight Draft", artist: "The Static Hours — Parallel Lines", dur: 204 },
+    { title: "Paper Windows",  artist: "Ivy Meridian — Field Notes",        dur: 187 },
+    { title: "Low Tide Loop",  artist: "Cassette Bureau — Analog Sleep",     dur: 232 },
+  ];
+
+  const player  = document.getElementById("player");
+  const title   = document.getElementById("title");
+  const artist  = document.getElementById("artist");
+  const fill    = document.getElementById("fill");
+  const curEl   = document.getElementById("cur");
+  const durEl   = document.getElementById("dur");
+  const playBtn = document.getElementById("play");
+  const likeBtn = document.getElementById("like");
+  const listEl  = document.getElementById("playlist");
+
+  let index = 0;
+  let playing = false;
+  let elapsed = 0;
+  let liked = false;
+  let timer = null;
+
+  const fmt = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+  function renderList() {
+    listEl.innerHTML = "";
+    tracks.forEach((t, i) => {
+      const li = document.createElement("li");
+      if (i === index) li.classList.add("active");
+      li.innerHTML = `<span>${String(i + 1).padStart(2, "0")} &nbsp; ${t.title}</span><span class="num">${fmt(t.dur)}</span>`;
+      li.addEventListener("click", () => { index = i; elapsed = 0; load(); play(); });
+      listEl.appendChild(li);
+    });
+  }
+
+  function load() {
+    const t = tracks[index];
+    title.textContent = t.title;
+    artist.textContent = t.artist;
+    durEl.textContent = fmt(t.dur);
+    renderList();
+    tick(0);
+  }
+
+  function tick(delta) {
+    const t = tracks[index];
+    elapsed = Math.min(elapsed + delta, t.dur);
+    fill.style.width = (elapsed / t.dur) * 100 + "%";
+    curEl.textContent = fmt(elapsed);
+    if (elapsed >= t.dur) next();
+  }
+
+  function loop() {
+    timer = setInterval(() => { if (playing) tick(1); }, 1000);
+  }
+
+  function play() {
+    playing = true;
+    player.classList.add("playing");
+    playBtn.innerHTML = "&#10074;&#10074;"; // pause glyph
+  }
+
+  function pause() {
+    playing = false;
+    player.classList.remove("playing");
+    playBtn.innerHTML = "&#9654;";
+  }
+
+  function next() { index = (index + 1) % tracks.length; elapsed = 0; load(); }
+  function prev() { index = (index - 1 + tracks.length) % tracks.length; elapsed = 0; load(); }
+
+  playBtn.addEventListener("click", () => (playing ? pause() : play()));
+  document.getElementById("next").addEventListener("click", next);
+  document.getElementById("prev").addEventListener("click", prev);
+  likeBtn.addEventListener("click", () => {
+    liked = !liked;
+    likeBtn.classList.toggle("on", liked);
+    likeBtn.innerHTML = liked ? "&#9829;" : "&#9825;";
+  });
+  document.getElementById("progress").addEventListener("click", (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    elapsed = ((e.clientX - rect.left) / rect.width) * tracks[index].dur;
+    tick(0);
+  });
+
+  load();
+  loop();
+</script>
+</body>
+</html>
