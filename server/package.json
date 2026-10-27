@@ -1,0 +1,25 @@
+{
+  "name": "retro-deck-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend for the retro-deck local music player (Express 5 + node:sqlite).",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "express": "^5.1.0",
+    "jose": "^6.1.0",
+    "music-metadata": "^11.0.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1",
+    "vitest": "^3.2.7"
+  }
+}
