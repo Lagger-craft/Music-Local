@@ -1,0 +1,26 @@
+services:
+  music-player:
+    build: .
+    image: retro-deck-music:latest
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      MUSIC_AUTH_USER: "${MUSIC_AUTH_USER:-admin}"
+      MUSIC_AUTH_PASSWORD: "${MUSIC_AUTH_PASSWORD:?Set MUSIC_AUTH_PASSWORD in your .env before starting}"
+      TRUST_PROXY: "${TRUST_PROXY:-1}"
+    volumes:
+      - music-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  music-data:

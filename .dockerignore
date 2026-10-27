@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+data
+.git
+.atl
+odd
+wireframes
+*.log
+.env
+.DS_Store
