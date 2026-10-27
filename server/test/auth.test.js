@@ -31,7 +31,7 @@ describe('config', () => {
     expect(loadConfig({}).trustProxy).toBe(false);
     expect(loadConfig({ TRUST_PROXY: '0' }).trustProxy).toBe(false);
     expect(loadConfig({ TRUST_PROXY: '1' }).trustProxy).toBe(1);
-    expect(loadConfig({ TRUST_PROXY: 'true' }).trustProxy).toBe(true);
+    expect(loadConfig({ TRUST_PROXY: 'true' }).trustProxy).toBe(1);
   });
 });
 

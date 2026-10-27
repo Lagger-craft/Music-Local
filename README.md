@@ -24,9 +24,11 @@ Supported audio: `.mp3`, `.flac`, `.m4a`, `.aac`, `.ogg`, `.opus`, `.wav`.
 | Variable               | Default           | Notes                                              |
 | ---------------------- | ----------------- | -------------------------------------------------- |
 | `MUSIC_AUTH_USER`      | `admin`           | Login username.                                    |
-| `MUSIC_AUTH_PASSWORD`  | random at boot    | Login password. Set it explicitly in production.   |
+| `MUSIC_AUTH_PASSWORD`  | random at boot    | Login password. Empty/unset generates a random one at boot (never disables auth). Set it explicitly in production. |
+| `MUSIC_AUTH_SECRET`    | random at boot    | Session signing key. Set a stable value so logins survive container restarts. |
+| `MUSIC_COOKIE_SECURE`  | `false`           | Set `true` to mark the session cookie `Secure` (use behind TLS; leave unset on plain-HTTP local access). |
 | `PORT`                 | `3000`            | HTTP port.                                         |
-| `TRUST_PROXY`          | `0` (compose: `1`) | Trusted reverse-proxy hops for client IP resolution. `1` behind a proxy (Dokploy/Traefik), `0` when exposed directly. |
+| `TRUST_PROXY`          | `0` (compose: `1`) | Trusted reverse-proxy hops for client IP resolution. `1` behind a proxy (Dokploy/Traefik), `0` when exposed directly. Numeric hops only (`true` is interpreted as `1`). With `0` behind a proxy all clients share one throttle bucket: 5 failed logins lock login for 15 minutes. |
 | `DATA_DIR`             | `/data` (in Docker) | Library DB, uploaded music and covers.           |
 
 If `MUSIC_AUTH_PASSWORD` is unset, a random password is generated and printed in the container logs at boot.

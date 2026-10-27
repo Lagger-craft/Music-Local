@@ -25,7 +25,10 @@ export async function signSession(config, username) {
 }
 
 export async function verifySession(config, token) {
-  const { payload } = await jwtVerify(token, secretKey(config));
+  // Pin the algorithm: only HS256 tokens minted by signSession are accepted.
+  const { payload } = await jwtVerify(token, secretKey(config), {
+    algorithms: ['HS256'],
+  });
   return payload;
 }
 
@@ -66,6 +69,7 @@ export class LoginThrottle {
 export const sessionCookieOptions = (config) => ({
   httpOnly: true,
   sameSite: 'lax',
+  secure: config.cookieSecure === true,
   path: '/',
   maxAge: config.sessionDays * 24 * 60 * 60 * 1000,
 });

@@ -22,7 +22,7 @@ export async function makeApp(t, env = {}) {
   });
   const db = openDatabase(config.dataDir);
   const app = createApp({ config, db });
-  t?.after(async () => {
+  t?.onTestFinished?.(async () => {
     db.close();
     await rm(dataDir, { recursive: true, force: true });
   });
