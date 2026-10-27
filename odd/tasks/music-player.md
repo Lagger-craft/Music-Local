@@ -96,31 +96,31 @@ library refresh.
 
 - T1 (S4,S6) — backend writer — scaffold `server/`: package.json (ESM, `type:module`), env config, SQLite
   schema init, auth login/logout/me + JWT cookie + throttle + constant-time compare, app error handling;
-  vitest+supertest auth tests with synthetic fixtures scaffolding. Commit: c1.
+  vitest+supertest auth tests with synthetic fixtures scaffolding. Commit: d35e1b1.
 - T2 (S3,S6) — backend writer — upload pipeline: busboy multipart pairing `files`/`paths`, tag parsing
   (`music-metadata`), embedded picture extraction, folder-cover rule, storage layout, skip/error reporting;
-  tests for tag parsing, folder-cover association, embedded-cover priority. Commit: c1.
+  tests for tag parsing, folder-cover association, embedded-cover priority. Commit: d35e1b1.
 - T3 (S3,S5,S6) — backend writer — library API: tracks list with q/artist/album/favorite/playlistId filters,
   overview facets, cover endpoint, streaming with Range (206/Content-Range, Content-Type); tests for filters,
-  range requests, cover fallback 404. Commit: c2.
+  range requests, cover fallback 404. Commit: d35e1b1.
 - T4 (S5) — backend writer — favorites + playlists endpoints; tests for toggle persistence, playlist CRUD,
-  full-replace ordering, playlist-scoped track listing. Commit: c2.
+  full-replace ordering, playlist-scoped track listing. Commit: d35e1b1.
 - T5 (S2,S6) — web writer — `web/` scaffold (Vite react-ts), design tokens from wireframe, login screen,
   deck shell (brand, cassette window + reels, LCD, meters, rail, transport, index-card list) faithful to
-  `wireframes/retro.html`, responsive layout deck+panel. Commit: c3.
+  `wireframes/retro.html`, responsive layout deck+panel. Commit: 2abba3e.
 - T6 (S2,S5) — web writer — player logic: audio element + queue, transport, marquee/status, click-to-seek
-  progress, real VU meters via Web Audio analyser (lazy AudioContext), auto-advance on `ended`. Commit: c3.
+  progress, real VU meters via Web Audio analyser (lazy AudioContext), auto-advance on `ended`. Commit: 2abba3e.
 - T7 (S3,S5) — web writer — library view: debounced search, artist/album/favorite filter chips, track list,
   upload panel (files + `webkitdirectory` folder, alternating `files`/`paths` fields, progress, summary),
-  favorites toggle wiring. Commit: c4.
+  favorites toggle wiring. Commit: 2abba3e.
 - T8 (S5) — web writer — playlists view: create/rename/delete, select playlist, add/remove tracks from the
-  library, play playlist as queue. Commit: c4.
+  library, play playlist as queue. Commit: 2abba3e.
 - T9 (S1) — parent — root `Dockerfile` (multi-stage: build `web` → static, run `server` + static on PORT,
   non-root user, `DATA_DIR=/data`), `.dockerignore`, `docker-compose.yml` with `/data` volume, `README.md`
-  (dev, docker, Dokploy). Commit: c5.
+  (dev, docker, Dokploy). Commit: a724069.
 - T10 (all) — parent — end-to-end verification: backend suite green, `vite build` green, `docker build` +
   smoke test (login → upload fixture → list → stream range → playlist), work-unit commits, final report.
-  Commit: c6 as needed.
+  Commits: d35e1b1 (server), 2abba3e (web), a724069 (deploy), fba98a5 (auth hardening); this docs commit closes T10.
 
 ## Log
 
@@ -131,3 +131,24 @@ library refresh.
 - L2 — Decisions (user, via question batch): add music = **solo upload desde la UI** (no folder mount);
   stack = **Node.js + React (Vite)**; auth = **login simple por env**; extras = **favoritos, listas de
   reproducción, búsqueda y filtros, VU meters reales** (all four selected).
+- L3 — Evidence (parent, T10): backend 45/45 vitest green and web `tsc -b && vite build` green, both observed
+  by the parent; Docker image built; in-container smoke OK (health, login, 401s, folder upload with
+  `coversApplied:1`, Range 206, cover 200, favorite persistence, playlist CRUD, SPA served, clean logs).
+  Commits: d35e1b1 (server, Risk line item 2), 2abba3e (web), a724069 (deploy).
+- L4 — Parent fix (test-first RED→GREEN, +3 tests): `TRUST_PROXY` env parsed into express `trust proxy` so
+  the login throttle keys on the real client IP behind Dokploy's proxy and cannot be spoofed when the API is
+  exposed directly; README/compose document it. Also corrected Dockerfile CMD to `server/src/server.js`.
+- L8 — Rebuild + smoke on the hardened image: REBUILD-SMOKE OK (job-2, exit 0). Final assess over the
+  committed range (base 7d40917, committed-only): risk medium / nativeRisk high → reviewDue=true. Plan:
+  writer self-verification stands, no further verifier.
+- L5 — Assess (native): risk high, escalation item 2 applied → plan = writer self-verification (observed) +
+  independent verifier (launched, gentle-ai-verify on the auth block).
+- L6 — Verify (gentle-ai-verify, independent, item 2): HIGH empty `MUSIC_AUTH_PASSWORD` silently disabled
+  auth; MEDIUM missing `Secure` cookie, `TRUST_PROXY=true` leftmost-XFF throttle evasion, shared bucket
+  behind proxy; LOW unpinned JWT alg. Preserves confirmed clean: credential compare constant-time, expired/
+  wrong-secret/`alg=none` 401, guard completeness, static cannot shadow /api, throttle window boundary.
+- L7 — Fixes (parent, test-first RED→GREEN, +7 tests in `server/test/auth-security.test.js`, suite 52/52):
+  empty/whitespace password now generates + banners (S4 branch), `algorithms:['HS256']` pinned on verify,
+  `MUSIC_COOKIE_SECURE` env, `TRUST_PROXY=true` → 1 hop, README advisories (bucket lockout, stable
+  `MUSIC_AUTH_SECRET` for restarts). Also fixed test cleanup: vitest context uses `onTestFinished`, not
+  `after` (helper had silently no-op'd).
