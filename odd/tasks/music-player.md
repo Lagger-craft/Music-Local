@@ -152,3 +152,9 @@ library refresh.
   `MUSIC_COOKIE_SECURE` env, `TRUST_PROXY=true` → 1 hop, README advisories (bucket lockout, stable
   `MUSIC_AUTH_SECRET` for restarts). Also fixed test cleanup: vitest context uses `onTestFinished`, not
   `after` (helper had silently no-op'd).
+- L9 — Native review close (lineage review-427385610f2267e9): full-feature candidate exceeded the lens
+  context budget (no authority created), so the review ran on the reduced suffix `a724069..HEAD` (auth
+  hardening + docs, 7 paths, tier high, lenses risk/readability/reliability). Result: **approved**, all 3
+  reviewers submitted, acknowledgement burned (`native-approved-acknowledgement-completed`). 9 advisory
+  findings, all informational/non-blocking (trust-proxy true→1 mapping note, test cleanup hygiene in
+  helpers.js/auth-security.test.js, doc wording) — recorded as later work, not re-review triggers.
