@@ -194,4 +194,15 @@ library refresh.
   fallback) findings fixed in the same slice with regression tests; symlink-follow NIT accepted (needs
   DATA_DIR write access = already full compromise). Concurrency property kept as verifier evidence, not a
   subprocess unit test (rejected as flaky). README: MUSIC_AUTH_SECRET row, Secure-over-HTTP warning, TLS
-  section corrected.
+  section corrected. Post-fix follow-up commit: best-effort chmod 0600 on the repair path + regression
+  test (suite 61/61).
+- L13 — Native review close (lineage review-3c96e10174de4f1f, target sha256:d6fcb632…, base-diff
+  c533ee2..HEAD committed-only, tier medium, lenses risk+resilience+reliability): **approved**, 3/3 reviewers
+  submitted via host relay, acknowledgement burned (`native-approved-acknowledgement-completed`). 6 advisory
+  findings, all informational/non-blocking and recorded as later work, never re-review triggers:
+  keyfile-mode on repair + repair-keeps-lax-mode (config.js:87 — **both closed by the follow-up commit**:
+  chmod 0600 after repair + test), repair-symlink (accepted: needs DATA_DIR write = already full compromise),
+  concurrent-repair-clobber (accepted narrow race: single-process containers; deterministic repair tests
+  instead of a flaky subprocess test), fallback-paths-untested (unwritable-DATA_DIR fallback covered by the
+  existing test; unreadable-key warn path left untested), loadconfig-disk-io (intentional: config owns the
+  secret; sync I/O at boot only).
