@@ -158,3 +158,17 @@ library refresh.
   reviewers submitted, acknowledgement burned (`native-approved-acknowledgement-completed`). 9 advisory
   findings, all informational/non-blocking (trust-proxy true→1 mapping note, test cleanup hygiene in
   helpers.js/auth-security.test.js, doc wording) — recorded as later work, not re-review triggers.
+- L10 — User report (verbatim): "Una duda puedes seguir con lo que falto anteriormente. Ya que por mas que
+  agrege las canciones al ser muchas, como mas de 500, se queda como pegado y no deja de cargar." Diagnosis:
+  the in-flight batching work never split a directory larger than the batch budget (commented as a cover
+  trade-off), so the common case — one folder with 500+ songs — still went as a single giant multipart POST
+  that stalls the UI and dies behind Traefik's readTimeout. Fix (test-first): extracted the pure planning
+  logic to `web/src/hooks/batching.ts`; `planBatches` now chunks oversized directories (≤20 files / ≤30 MB
+  per request) and repeats the folder cover in every chunk so the server keeps pairing cover + tracks
+  within each request; small folders still ride together; a lone oversized file travels alone, still with
+  the cover; cover-only folders are chunked instead of repeated. Added `web/test/batching.test.ts` via
+  `node --test` (no new deps). RED: 3 failures incl. "a 500-track folder must not stay in one request" →
+  GREEN 5/5; server suite 53/53; `vite build` green. Scratch e2e (real `planBatches` → real server over
+  HTTP): 60-track folder + cover → 3 requests, coversApplied 60, every track has coverUrl. Slice boundary:
+  5b639fc (server abort cleanup), acd4e9e (web batching), 183fefc (chore: Tailscale certs ignored) — all on
+  `main` per the user's Dokploy-from-main decision; user must redeploy for the fix to reach the app.
