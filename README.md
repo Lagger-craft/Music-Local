@@ -100,6 +100,71 @@ Any of the two Dokploy paths works; both keep `/data` persistent:
 3. The compose file already declares the named volume `music-data:/data`; Dokploy provisions it.
 4. **Deploy**. Healthchecks use `GET /api/health`.
 
+## Private access over Tailscale (HTTPS)
+
+Expose the app (and optionally the Dokploy dashboard) on your own tailnet with valid HTTPS, without opening
+any port on the public internet. Reachable only from your Tailscale devices.
+
+### Why ports 8443/8444 instead of 443
+
+Dokploy's Traefik binds `0.0.0.0:443`, which blocks tailscaled from binding the same port on the Tailscale
+interface: requests to port 443 land on Traefik (404, no router for that host) instead of Tailscale. So
+Tailscale serves on free ports — `8443` (app, proxied through Traefik) and `8444` (dashboard, direct).
+
+Tailscale only issues a certificate for the node's exact MagicDNS name (no wildcard subdomains), so both
+services share one hostname and are distinguished by port.
+
+### 1. Register the host in Dokploy
+
+Traefik is configured by Dokploy **from its database** — editing YAML files under
+`/etc/dokploy/traefik/dynamic/` by hand is overwritten on the next save or deploy. Register the domain in
+the app's **Domains** tab → **Add Domain**:
+
+| Field   | Value                                             |
+| ------- | ------------------------------------------------- |
+| Host    | `<node>.<tailnet>.ts.net` (e.g. `dokploy.tail8b12bf.ts.net`) |
+| Port    | `3000`                                            |
+| HTTPS   | disabled                                          |
+
+HTTPS must be **off**: Tailscale terminates TLS and Traefik receives plain HTTP on the `web` entrypoint.
+Leaving it on would make Dokploy request a Let's Encrypt cert for a hostname only resolvable inside the
+tailnet (ACME fails) and add a redirect loop.
+
+### 2. Serve through Tailscale
+
+`tailscale serve` requires root once (or set yourself as operator so you never need sudo again):
+
+```bash
+sudo tailscale set --operator=$USER
+tailscale serve --bg --https=8443 http://localhost:80      # app via Traefik
+tailscale serve --bg --https=8444 http://localhost:3000    # Dokploy dashboard
+```
+
+Verify with `tailscale serve status`.
+
+### 3. Make it survive reboots
+
+Serve configs live in tailscaled's state file and are restored automatically, but the daemons themselves
+must be enabled at boot (they ship `disabled` on some installs):
+
+```bash
+sudo systemctl enable tailscaled docker
+systemctl is-enabled tailscaled docker   # expect: enabled / enabled
+```
+
+If you ever reinstall Tailscale (its state is wiped), re-run the two `serve` commands above.
+
+### URLs
+
+- App: `https://<node>.<tailnet>.ts.net:8443`
+- Dashboard: `https://<node>.<tailnet>.ts.net:8444` — an admin UI with full control over every service.
+  Run `tailscale serve --https=8444 off` if you don't need it remotely.
+
+### Recommended environment behind TLS
+
+Set these in Dokploy's Environment tab (see the table above): `MUSIC_COOKIE_SECURE=true` and a stable
+`MUSIC_AUTH_SECRET` so session cookies work over HTTPS and logins survive container restarts.
+
 ## Using the library
 
 - **Upload files**: *Library → Upload files*, pick audio files (and optional cover images).
