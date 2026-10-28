@@ -1,5 +1,9 @@
 import { useRef, type ChangeEvent } from 'react';
 import type { UploadState } from '../hooks/useUpload';
+import { splitPreview } from '../hooks/summary';
+
+/** Visible rows per skipped/error list; the rest collapses behind a toggle. */
+const SUMMARY_PREVIEW = 6;
 
 interface UploadPanelProps {
   upload: UploadState & {
@@ -89,25 +93,50 @@ export function UploadPanel({ upload }: UploadPanelProps) {
             {result.skipped.length} — ERRORS {result.errors.length}
           </p>
           {result.skipped.length > 0 ? (
-            <ul className="summary-list">
-              {result.skipped.map((s, i) => (
-                <li key={`s-${i}`}>
-                  {s.filename}: {s.reason}
-                </li>
-              ))}
-            </ul>
+            <CompactList items={result.skipped} label="skipped" render={(s) => `${s.filename}: ${s.reason}`} />
           ) : null}
           {result.errors.length > 0 ? (
-            <ul className="summary-list">
-              {result.errors.map((e, i) => (
-                <li key={`e-${i}`}>
-                  {e.filename}: {e.error}
-                </li>
-              ))}
-            </ul>
+            <CompactList items={result.errors} label="errors" render={(e) => `${e.filename}: ${e.error}`} />
           ) : null}
         </div>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * Skipped/errors list that stays short: the first rows show inline and the
+ * remainder collapses behind a toggle. A 500-song folder upload reports every
+ * unsupported file (thumbnails, .txt), and rendering hundreds of rows pushes
+ * the library list — the thing needed to load a track — off the panel.
+ */
+function CompactList<T>({
+  items,
+  label,
+  render,
+}: {
+  items: T[];
+  label: string;
+  render: (item: T) => string;
+}) {
+  const { preview, rest } = splitPreview(items, SUMMARY_PREVIEW);
+  return (
+    <ul className="summary-list">
+      {preview.map((item, i) => (
+        <li key={`${label}-${i}`}>{render(item)}</li>
+      ))}
+      {rest.length > 0 ? (
+        <details className="summary-more">
+          <summary>
+            … and {rest.length} more {label}
+          </summary>
+          <ul>
+            {rest.map((item, i) => (
+              <li key={`${label}-more-${i}`}>{render(item)}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </ul>
   );
 }

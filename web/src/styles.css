@@ -647,6 +647,17 @@ body {
   margin-bottom: 2px;
 }
 
+.summary-more summary {
+  cursor: pointer;
+  margin-top: 4px;
+  user-select: none;
+}
+
+.summary-more ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
 /* --------------------------------------------------- Library panel */
 .filter-row {
   display: flex;
