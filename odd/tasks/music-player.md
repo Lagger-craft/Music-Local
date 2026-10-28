@@ -172,3 +172,10 @@ library refresh.
   HTTP): 60-track folder + cover → 3 requests, coversApplied 60, every track has coverUrl. Slice boundary:
   5b639fc (server abort cleanup), acd4e9e (web batching), 183fefc (chore: Tailscale certs ignored) — all on
   `main` per the user's Dokploy-from-main decision; user must redeploy for the fix to reach the app.
+- L11 — Native review close (lineage review-7bc1f234bf27c415, target sha256:73f731ad…, base-diff
+  e5a548f..HEAD committed-only, tier medium, lenses resilience+reliability): **approved**, 2/2 reviewers
+  submitted via host relay, acknowledgement burned (`native-approved-acknowledgement-completed`). 6 advisory
+  findings, all informational/non-blocking and recorded as later work, never re-review triggers:
+  abort-test timing window (upload.test.js:218-225), duplicated FOLDER_COVER_RE mirror in web tests,
+  silent `xhr.onabort` continue (useUpload.ts:93), fire-and-forget abort cleanup (library.js:257),
+  500ms cleanup sleep in the abort test, and no retry/restart-overlap guard (useUpload.ts:95).
