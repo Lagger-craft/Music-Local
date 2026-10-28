@@ -25,8 +25,8 @@ Supported audio: `.mp3`, `.flac`, `.m4a`, `.aac`, `.ogg`, `.opus`, `.wav`.
 | ---------------------- | ----------------- | -------------------------------------------------- |
 | `MUSIC_AUTH_USER`      | `admin`           | Login username.                                    |
 | `MUSIC_AUTH_PASSWORD`  | random at boot    | Login password. Empty/unset generates a random one at boot (never disables auth). Set it explicitly in production. |
-| `MUSIC_AUTH_SECRET`    | random at boot    | Session signing key. Set a stable value so logins survive container restarts. |
-| `MUSIC_COOKIE_SECURE`  | `false`           | Set `true` to mark the session cookie `Secure` (use behind TLS; leave unset on plain-HTTP local access). |
+| `MUSIC_AUTH_SECRET`    | auto-generated    | Session signing key. Unset/blank → generated once and persisted at `DATA_DIR/session.key` (mode 0600), so logins survive container restarts and redeploys with no configuration. The file is machine-owned (validated and repaired at boot — don't edit it); set this env var if you want to manage a custom key yourself. |
+| `MUSIC_COOKIE_SECURE`  | `false`           | Mark the session cookie `Secure`. **Only behind TLS (https://). Over plain HTTP the browser refuses to store a `Secure` cookie: login appears to work, then every reload logs you out.** Leave unset on plain-HTTP access. |
 | `PORT`                 | `3000`            | HTTP port.                                         |
 | `TRUST_PROXY`          | `0` (compose: `1`) | Trusted reverse-proxy hops for client IP resolution. `1` behind a proxy (Dokploy/Traefik), `0` when exposed directly. Numeric hops only (`true` is interpreted as `1`). With `0` behind a proxy all clients share one throttle bucket: 5 failed logins lock login for 15 minutes. |
 | `DATA_DIR`             | `/data` (in Docker) | Library DB, uploaded music and covers.           |
@@ -162,8 +162,11 @@ If you ever reinstall Tailscale (its state is wiped), re-run the two `serve` com
 
 ### Recommended environment behind TLS
 
-Set these in Dokploy's Environment tab (see the table above): `MUSIC_COOKIE_SECURE=true` and a stable
-`MUSIC_AUTH_SECRET` so session cookies work over HTTPS and logins survive container restarts.
+Only when the app is served over **https://** (see URLs above): set `MUSIC_COOKIE_SECURE=true` in
+Dokploy's Environment tab so the session cookie carries the `Secure` flag. Do **not** set it when you
+access the app over plain `http://` — the browser will reject the cookie and every page reload will log
+you out. `MUSIC_AUTH_SECRET` is optional: without it a stable key is generated and persisted in
+`DATA_DIR/session.key` on first boot.
 
 ## Using the library
 

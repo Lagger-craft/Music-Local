@@ -1,6 +1,10 @@
+import { mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { loadConfig } from '../src/config.js';
+import { signSession, verifySession } from '../src/auth.js';
 import { login, makeApp, sidFrom, TEST_PASSWORD, TEST_USER } from './helpers.js';
 
 describe('config', () => {
@@ -32,6 +36,81 @@ describe('config', () => {
     expect(loadConfig({ TRUST_PROXY: '0' }).trustProxy).toBe(false);
     expect(loadConfig({ TRUST_PROXY: '1' }).trustProxy).toBe(1);
     expect(loadConfig({ TRUST_PROXY: 'true' }).trustProxy).toBe(1);
+  });
+
+  it('persists a generated session secret in DATA_DIR so logins survive restarts', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+
+    const first = loadConfig({ DATA_DIR: dir });
+    const second = loadConfig({ DATA_DIR: dir }); // simulated container reboot
+
+    expect(first.jwtSecret.length).toBeGreaterThanOrEqual(32);
+    expect(second.jwtSecret).toBe(first.jwtSecret);
+    const keyPath = path.join(dir, 'session.key');
+    expect((await readFile(keyPath, 'utf8')).trim()).toBe(first.jwtSecret);
+    expect((await stat(keyPath)).mode & 0o777).toBe(0o600);
+  });
+
+  it('prefers MUSIC_AUTH_SECRET over the persisted key and never writes it to disk', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+
+    const config = loadConfig({ DATA_DIR: dir, MUSIC_AUTH_SECRET: 'explicit-secret' });
+
+    expect(config.jwtSecret).toBe('explicit-secret');
+    await expect(stat(path.join(dir, 'session.key'))).rejects.toThrow();
+  });
+
+  it('treats an empty MUSIC_AUTH_SECRET as unset instead of signing with a blank key', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+
+    const config = loadConfig({ DATA_DIR: dir, MUSIC_AUTH_SECRET: '   ' });
+
+    expect(config.jwtSecret.length).toBeGreaterThanOrEqual(32);
+  });
+
+  it('falls back to a per-boot secret when DATA_DIR is not writable', async () => {
+    const filePath = path.join(await mkdtemp(path.join(tmpdir(), 'mm-secret-')), 'not-a-dir');
+    await writeFile(filePath, '');
+
+    const first = loadConfig({ DATA_DIR: filePath });
+    const second = loadConfig({ DATA_DIR: filePath });
+
+    expect(first.jwtSecret.length).toBeGreaterThanOrEqual(32);
+    expect(second.jwtSecret).not.toBe(first.jwtSecret); // ephemeral, as before
+  });
+
+  it('repairs a blank session.key on the next boot instead of staying ephemeral', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+    const keyPath = path.join(dir, 'session.key');
+    await writeFile(keyPath, '   \n'); // e.g. volume provisioned with an empty file
+
+    const first = loadConfig({ DATA_DIR: dir });
+
+    expect(first.jwtSecret.length).toBeGreaterThanOrEqual(32);
+    expect((await readFile(keyPath, 'utf8')).trim()).toBe(first.jwtSecret);
+    expect(loadConfig({ DATA_DIR: dir }).jwtSecret).toBe(first.jwtSecret);
+  });
+
+  it('replaces corrupt session.key content instead of signing with it', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+    const keyPath = path.join(dir, 'session.key');
+    await writeFile(keyPath, 'changeme\n');
+
+    const config = loadConfig({ DATA_DIR: dir });
+
+    expect(config.jwtSecret).not.toBe('changeme');
+    expect(config.jwtSecret.length).toBeGreaterThanOrEqual(32);
+    expect((await readFile(keyPath, 'utf8')).trim()).toBe(config.jwtSecret);
+  });
+
+  it('a token signed before a restart verifies after it; a foreign secret is rejected', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+    const boot1 = loadConfig({ DATA_DIR: dir });
+    const boot2 = loadConfig({ DATA_DIR: dir }); // simulated container reboot
+
+    const token = await signSession(boot1, TEST_USER);
+    expect((await verifySession(boot2, token)).sub).toBe(TEST_USER);
+    await expect(verifySession({ ...boot2, jwtSecret: 'other-secret' }, token)).rejects.toThrow();
   });
 });
 
