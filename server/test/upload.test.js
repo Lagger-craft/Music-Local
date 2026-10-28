@@ -1,3 +1,4 @@
+import http from 'node:http';
 import { readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import request from 'supertest';
@@ -182,6 +183,50 @@ describe('POST /api/library/upload', () => {
       .set('Content-Type', contentType)
       .send(body);
     expect(res.status).toBe(401);
+  });
+
+  it('removes staged temp files when the client aborts mid-upload', async () => {
+    const { app, dataDir } = await makeApp();
+    const sid = await login(app);
+    const server = app.listen(0);
+    const { port } = server.address();
+
+    const boundary = 'abortboundary';
+    const header = Buffer.from(
+      `--${boundary}\r\n` +
+        'Content-Disposition: form-data; name="files"; filename="big.wav"\r\n' +
+        'Content-Type: application/octet-stream\r\n\r\n',
+      'latin1',
+    );
+
+    // Declare a 10 MB body, deliver only 1 MB, then kill the socket: the
+    // server stages a .part file it must clean up after the abort.
+    await new Promise((resolve) => {
+      const req = http.request({
+        port,
+        method: 'POST',
+        path: '/api/library/upload',
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Length': 10 * 1024 * 1024,
+          Cookie: sid,
+        },
+      });
+      req.on('error', () => {}); // ECONNRESET is the point of the test
+      req.write(header);
+      req.write(Buffer.alloc(1024 * 1024, 0x61));
+      setTimeout(() => {
+        req.destroy();
+        resolve(undefined);
+      }, 200);
+    });
+
+    // Give the server time to observe the abort and run its cleanup path.
+    await new Promise((r) => setTimeout(r, 500));
+    const leftovers = await readdir(path.join(dataDir, 'tmp')).catch(() => []);
+    expect(leftovers).toEqual([]);
+
+    await new Promise((r) => server.close(r));
   });
 
   it('stores the full original bytes, readable through the stream endpoint', async () => {

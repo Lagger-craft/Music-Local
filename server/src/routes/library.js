@@ -92,15 +92,38 @@ export function createLibraryRouter({ config, db }) {
       stream.on('limit', () => {
         entry.overflow = true;
       });
-      fileTasks.push(pipeline(stream, fs.createWriteStream(entry.tmpPath)));
+      const writer = fs.createWriteStream(entry.tmpPath);
+      entry.writer = writer; // so the abort path can unblock the pipeline
+      const task = pipeline(stream, writer);
+      // The abort path never awaits this; attach a no-op handler so a
+      // destroyed stream cannot surface as an unhandled rejection.
+      task.catch(() => {});
+      fileTasks.push(task);
       if (pendingPaths.length > 0) applyRelPath(entry, pendingPaths.shift());
       else unpairedFiles.push(entry);
       stagedFiles.push(entry);
     });
 
-    bb.on('error', (err) => next(err));
+    // An aborted request settles the upload exactly once: pending streams are
+    // drained and every staged .part is removed, so a client that dies mid-body
+    // (proxy timeout, closed tab) leaves no garbage in DATA_DIR/tmp.
+    let settled = false;
+    const removeStaged = async () => {
+      await Promise.all(stagedFiles.map((entry) => fsp.rm(entry.tmpPath, { force: true })));
+    };
+
+    bb.on('error', (err) => {
+      if (settled) return;
+      settled = true;
+      for (const entry of stagedFiles) entry.writer?.destroy();
+      removeStaged()
+        .catch(() => {})
+        .finally(() => next(err));
+    });
 
     bb.on('close', async () => {
+      if (settled) return;
+      settled = true;
       try {
         await Promise.all(fileTasks);
         const batchTracks = []; // audio records: {relDir, id, coverId}
@@ -139,6 +162,9 @@ export function createLibraryRouter({ config, db }) {
 
         res.status(200).json(result);
       } catch (err) {
+        // Staged files were never stored (or the batch failed midway): drop
+        // whatever is still in tmp before surfacing the error.
+        await removeStaged().catch(() => {});
         next(err);
       }
     });
@@ -218,6 +244,20 @@ export function createLibraryRouter({ config, db }) {
     };
 
     req.pipe(bb);
+
+    // busboy emits nothing when the socket dies mid-body (verified: only the
+    // request itself fires `aborted`/`close` with complete=false), so the
+    // abort path hangs off the request: settle once, drain the staging
+    // streams and drop every .part still in tmp.
+    req.on('close', () => {
+      if (req.complete || settled) return;
+      settled = true;
+      // busboy's streams never end after an abort, so the pipelines cannot be
+      // awaited: destroy the writers (unblocks them) and remove the staged
+      // .part files right away.
+      for (const entry of stagedFiles) entry.writer?.destroy();
+      removeStaged().catch(() => {});
+    });
   });
 
   /** GET /api/library/overview — counts plus album/artist facets. */
