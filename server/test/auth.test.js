@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -101,6 +101,17 @@ describe('config', () => {
     expect(config.jwtSecret).not.toBe('changeme');
     expect(config.jwtSecret.length).toBeGreaterThanOrEqual(32);
     expect((await readFile(keyPath, 'utf8')).trim()).toBe(config.jwtSecret);
+  });
+
+  it('hardens a lax pre-existing session.key to 0600 when repairing it', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'mm-secret-'));
+    const keyPath = path.join(dir, 'session.key');
+    await writeFile(keyPath, 'corrupt-but-nonempty\n', { mode: 0o644 });
+    await chmod(keyPath, 0o644); // defeat any umask narrowing on create
+
+    loadConfig({ DATA_DIR: dir });
+
+    expect((await stat(keyPath)).mode & 0o777).toBe(0o600);
   });
 
   it('a token signed before a restart verifies after it; a foreign secret is rejected', async () => {

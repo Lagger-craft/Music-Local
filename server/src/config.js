@@ -85,6 +85,13 @@ function resolveJwtSecret(env, dataDir) {
     // persistence goal does not silently stay unmet forever.
     console.warn(`[auth] invalid content in ${keyPath}: writing a fresh session key`);
     fs.writeFileSync(keyPath, `${generated}\n`, { mode: 0o600 });
+    // `mode` only applies on creation, so force 0600 here: a lax pre-existing
+    // file must not keep the fresh key readable by group/others.
+    try {
+      fs.chmodSync(keyPath, 0o600);
+    } catch {
+      // Best effort: the content is already refreshed.
+    }
     return generated;
   } catch (err) {
     if (err.code === 'EEXIST') {
