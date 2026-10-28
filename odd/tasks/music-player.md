@@ -179,3 +179,19 @@ library refresh.
   abort-test timing window (upload.test.js:218-225), duplicated FOLDER_COVER_RE mirror in web tests,
   silent `xhr.onabort` continue (useUpload.ts:93), fire-and-forget abort cleanup (library.js:257),
   500ms cleanup sleep in the abort test, and no retry/restart-overlap guard (useUpload.ts:95).
+- L12 — User request (verbatim): "Tambien puedes ver para que el login se matenga por mas que reinicie el
+  navegador." Diagnosis via user answers (verbatim: "http://dokploy.tail8b12bf.ts.net/",
+  "TRUST_PROXY=1 / MUSIC_COOKIE_SECURE=true / Tambien tengo MUSIC_AUTH_PASSWORD", symptom "También al
+  recargar la página"): root cause A (config, user-side) — `MUSIC_COOKIE_SECURE=true` over plain HTTP makes
+  the browser reject the session cookie, so login survives only as in-memory React state and every reload
+  logs out; user told to remove the flag in Dokploy (or move to HTTPS per README). Root cause B (code, fixed
+  here) — without `MUSIC_AUTH_SECRET` the JWT secret was random per boot, so every Dokploy redeploy
+  invalidated all sessions; the secret is now persisted at `DATA_DIR/session.key` (0600, format-validated,
+  repaired when blank/corrupt, env wins, blank env never signs, ephemeral fallback with a warning, key never
+  logged). Test-first: +6 config tests (RED on persistence + blank-env → GREEN), suite 60/60. Independent
+  verification (gentle-ai-verify, Risk item 2): PASS on all 7 properties incl. 5×8 concurrent-boot no-clobber
+  probe and a sign/verify restart round-trip; its MAJOR (corrupt key adopted) and MINOR (silent blank-key
+  fallback) findings fixed in the same slice with regression tests; symlink-follow NIT accepted (needs
+  DATA_DIR write access = already full compromise). Concurrency property kept as verifier evidence, not a
+  subprocess unit test (rejected as flaky). README: MUSIC_AUTH_SECRET row, Secure-over-HTTP warning, TLS
+  section corrected.
