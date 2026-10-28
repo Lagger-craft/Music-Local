@@ -206,3 +206,20 @@ library refresh.
   instead of a flaky subprocess test), fallback-paths-untested (unwritable-DATA_DIR fallback covered by the
   existing test; unreadable-key warn path left untested), loadconfig-disk-io (intentional: config owns the
   secret; sync I/O at boot only).
+- L14 — Native review close (lineage review-7385432626a5f63a, target sha256:c975b0bd…, same range
+  c533ee2..HEAD now including the chmod follow-up, tier medium, lenses risk+resilience+reliability):
+  **approved**, 3/3 lens results admitted, acknowledgement burned (`native-approved-acknowledgement-completed`).
+  Transport note: the reliability reviewer's first payload was refused at admission for a lens-name typo
+  (`review-reliience`); the refused bytes were never replayed — bound STATUS reoffered only that slot and the
+  recaptured result closed the review (risk+resilience admitted on the first group run). 9 advisory findings,
+  all informational/non-blocking, recorded as later work, never re-review triggers. Dispositions:
+  env-secret-untrimmed (accepted: raw env value kept exactly like MUSIC_AUTH_PASSWORD), keyfile-symlink-follow
+  + symlink-write-through (accepted: DATA_DIR write access already implies full compromise),
+  RepairRaceClobber + adopt-race-transient-empty (accepted narrow races: single-process containers; a
+  transiently blank read self-heals via the repair path), repair-non-atomic-overwrite (accepted: truncate
+  write; a crash mid-write leaves blank/corrupt content that the next boot repairs), UnreadableKeyUntested
+  (warn-only path, no behavior), DefaultDataDirSideEffect (the default-config test writes the gitignored
+  server/data/session.key; isolate with a temp DATA_DIR if tests ever run read-only),
+  **KeyModeNotHardenedOnAdopt — named next hardening**: a valid pre-existing key at lax mode is adopted
+  without chmod 0600 (repair path already hardens); rides the next feature slice rather than another
+  micro-cycle.
