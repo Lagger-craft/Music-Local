@@ -239,6 +239,15 @@ library refresh.
   Node 26; an `engines` field would document it), batch-file-cap (a lone oversized file/cover can exceed the
   budget by design, same as the file-cap note), batch-no-retry (accepted design: a failed batch stops the run and
   reports the partial result instead of silently re-uploading).
+- L17 — Native review close (lineage review-5ecfa5c3446f5427, target sha256:75bd2858…, base-diff
+  7331d96..HEAD committed-only, tier medium, lenses readability+reliability): **approved**, 2/2 reviewers via
+  host relay, acknowledgement burned (`native-approved-acknowledgement-completed`). 3 advisory findings, all
+  informational/non-blocking, recorded as later work, never re-review triggers. Dispositions: R2-001
+  (CompactList structure/wording polish, deferred), R3-CompactListUntested (accepted: the web repo has no DOM
+  test infra — node --test covers the pure splitPreview logic; a component test would need jsdom/vitest,
+  deferred), **R3-InvalidUlChild (WARNING, UploadPanel.tsx:130-139) — named small follow-up**: `<details>` sits
+  as a direct child of `<ul>` (invalid content model; renders and toggles fine in practice) → wrap it in an
+  `<li>` together with the L14 KeyModeNotHardenedOnAdopt item in the next slice.
 - L16 — User report (verbatim): "[Image] Quedo asi al final. Por alguna razon no puedo darle a play y se ve
   una lista interminable hacia abajo" (screenshot: ADDED 244 TRACKS — 0 COVERS APPLIED — SKIPPED 256 — ERRORS 0,
   with all 256 skipped thumbnails listed inline; deck showed "Queue empty. Click a track to load the tape.").
