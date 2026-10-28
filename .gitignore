@@ -5,3 +5,7 @@ dist/
 .env
 .DS_Store
 wireframes/
+
+# Tailscale serve certificates (the key must never be committed)
+dokploy.*.ts.net.crt
+dokploy.*.ts.net.key
