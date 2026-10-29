@@ -270,3 +270,20 @@ library refresh.
   live 70% change, pause/resume. Native assess (untracked declared via `--intended-untracked`): risk medium,
   `review_due: false` (`under_budget`) → no review started per entry rule; the independent verifier admission
   gate refused the run twice (no Risk declared in task text → then explicit do-not-retry), reported unavailable.
+- L19 — Native review close (lineage review-4f1d92294c96d834, target sha256:1be03da7…, base-diff
+  7331d96..HEAD committed-only = volume slice + upload-summary fix: 10 files / 298 lines, tier medium, lenses
+  resilience+readability+reliability): **approved**, 3/3 reviewers via host relay (group forecast 3 runs acked,
+  submitted 3/3 in one closure), acknowledgement burned (`native-approved-acknowledgement-completed`, revision
+  sha256:6ab2ad03…). Untracked declaration needed before assess/START: `inspect + untrackedScope select +
+  intendedUntracked [VolumeControl.tsx]`, then native `review assess` CLI for the read-only assessment (fachada
+  no expone los flags) → risk medium, review_due false; START run anyway per RDD reminder offering review.start.
+  5 advisory findings, all informational/non-blocking, recorded as later work, never re-review triggers.
+  Dispositions: **R3-InvalidUlChild (WARNING, UploadPanel.tsx:127-136)** = the already-named L17 follow-up
+  (`<details>` direct child of `<ul>` → wrap in `<li>`), rides the next slice with KeyModeNotHardenedOnAdopt;
+  R2-001 (WARNING, UploadPanel.tsx:130-139) = wording/structure polish on the same compact-preview block, with
+  the previous one; R2-002 (SUGGESTION, usePlayer.ts:277-292) = setVolume doc-comment polish, deferred;
+  **R3-VolumePathUntested (WARNING, usePlayer.ts:282-291) — named follow-up**: the setVolume/graph-seed path has
+  no committed test (repo has no DOM/audio infra; the 18-check headless-Chromium e2e covering exactly this was
+  scratch `/tmp/vol-e2e.mjs`, not committed) → decide whether to promote it to `scripts/` with a committed runner;
+  R4-WebAudioHazardComment (WARNING, usePlayer.ts:65-73) = strengthen the ensureAudioGraph hazard comment
+  (createMediaElementSource once-only / element-volume pinning), comment-only, deferred.
