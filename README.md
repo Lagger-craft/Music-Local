@@ -7,7 +7,7 @@ a whole folder (with its cover art) from the web UI.
 ## Features
 
 - Retro deck UI: spinning reels, LCD marquee, real VU meters (Web Audio), tape-counter seek bar, chunky
-  transport buttons.
+  transport buttons, output volume slider.
 - Upload audio files or an entire folder (cover art stays with the album).
 - Reads tags (title/artist/album/track no/genre/year/duration) and embedded cover art with `music-metadata`.
 - Folder covers: `cover.jpg`, `folder.jpg`, `album.jpg` or `front.*` inside an uploaded folder applies to all

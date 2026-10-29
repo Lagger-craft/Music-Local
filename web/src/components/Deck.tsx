@@ -4,6 +4,7 @@ import { formatNo, formatTime } from '../lib/format';
 import { VUMeters } from './VUMeters';
 import { ProgressRail } from './ProgressRail';
 import { Transport } from './Transport';
+import { VolumeControl } from './VolumeControl';
 
 interface DeckProps {
   queue: Track[];
@@ -14,7 +15,9 @@ interface DeckProps {
   currentTime: number;
   duration: number;
   levels: VuLevels;
+  volume: number;
   onSeek: (fraction: number) => void;
+  onVolumeChange: (volume: number) => void;
   onPlayAt: (index: number) => void;
   onTogglePlay: () => void;
   onStop: () => void;
@@ -37,7 +40,9 @@ export function Deck({
   currentTime,
   duration,
   levels,
+  volume,
   onSeek,
+  onVolumeChange,
   onPlayAt,
   onTogglePlay,
   onStop,
@@ -93,6 +98,8 @@ export function Deck({
         onNext={onNext}
         onLike={onLike}
       />
+
+      <VolumeControl volume={volume} onVolumeChange={onVolumeChange} />
 
       <section className="index queue-index" aria-label="Queue">
         <h2>Playlist Index</h2>

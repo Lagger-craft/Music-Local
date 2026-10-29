@@ -79,7 +79,9 @@ export default function App() {
         currentTime={player.currentTime}
         duration={player.duration}
         levels={player.levels}
+        volume={player.volume}
         onSeek={player.seekFraction}
+        onVolumeChange={player.setVolume}
         onPlayAt={(i) => player.playQueue(player.queue, i)}
         onTogglePlay={player.togglePlay}
         onStop={player.stop}

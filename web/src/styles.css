@@ -295,6 +295,72 @@ body {
   color: #fff;
 }
 
+/* ----------------------------------------- Volume control */
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.volume label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.volume input[type='range'] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  background: var(--cassette-bg);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.volume input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 24px;
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.volume input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 24px;
+  background: linear-gradient(180deg, #ff8f52, var(--orange));
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+.volume input[type='range']:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.volume .volume-value {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 44px;
+  text-align: center;
+  background: var(--lcd-bg);
+  color: var(--lcd-text);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  padding: 3px 4px;
+  text-shadow: 0 0 5px rgba(141, 240, 141, 0.7);
+}
+
 /* ------------------------------------ Index cards (track rows) */
 .index {
   margin-top: 16px;

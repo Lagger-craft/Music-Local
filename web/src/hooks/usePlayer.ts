@@ -12,6 +12,7 @@ const IDLE_LEVELS: VuLevels = [8, 8, 8];
 interface AudioGraph {
   ctx: AudioContext;
   analyser: AnalyserNode;
+  gain: GainNode;
   data: Uint8Array<ArrayBuffer>;
 }
 
@@ -36,6 +37,7 @@ export function usePlayer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [levels, setLevels] = useState<VuLevels>(IDLE_LEVELS);
+  const [volume, setVolumeState] = useState(1);
 
   // Refs mirroring state for use inside long-lived event handlers.
   const queueRef = useRef<Track[]>([]);
@@ -43,6 +45,7 @@ export function usePlayer() {
   const playingRef = useRef(false);
   const graphRef = useRef<AudioGraph | null>(null);
   const rafRef = useRef(0);
+  const volumeRef = useRef(1);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -59,8 +62,8 @@ export function usePlayer() {
   // ---------------------------------------------------------------- Web Audio
 
   /**
-   * Lazily create AudioContext -> MediaElementSource -> Analyser -> destination
-   * on the first user play gesture. Must run synchronously inside a gesture
+   * Lazily create AudioContext -> MediaElementSource -> Analyser -> Gain ->
+   * destination on the first user play gesture. Must run synchronously inside a gesture
    * handler. Never throws: on any failure playback continues through the plain
    * audio element and the meters stay idle.
    */
@@ -81,9 +84,15 @@ export function usePlayer() {
       const source = ctx.createMediaElementSource(audio);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
+      const gain = ctx.createGain();
+      gain.gain.value = volumeRef.current;
+      // source -> analyser (VU reads program level) -> gain (volume) -> out.
       source.connect(analyser);
-      analyser.connect(ctx.destination);
-      graphRef.current = { ctx, analyser, data: new Uint8Array(analyser.frequencyBinCount) };
+      analyser.connect(gain);
+      gain.connect(ctx.destination);
+      graphRef.current = { ctx, analyser, gain, data: new Uint8Array(analyser.frequencyBinCount) };
+      // The gain node owns the output level from here on; avoid doubling it.
+      audio.volume = 1;
       return true;
     } catch {
       graphRef.current = null;
@@ -265,6 +274,23 @@ export function usePlayer() {
     [audio, currentTrack],
   );
 
+  /**
+   * Set output volume (0-1, clamped). Once the graph exists the GainNode owns
+   * the level (and the element volume is pinned to 1); before that, or when
+   * Web Audio is unavailable, the plain element volume is used instead.
+   */
+  const setVolume = useCallback(
+    (value: number) => {
+      const clamped = Math.min(Math.max(value, 0), 1);
+      volumeRef.current = clamped;
+      setVolumeState(clamped);
+      const graph = graphRef.current;
+      if (graph) graph.gain.gain.value = clamped;
+      else if (audio) audio.volume = clamped;
+    },
+    [audio],
+  );
+
   /** Patch a track everywhere it appears (queue included), e.g. favorite flips. */
   const patchTrack = useCallback((id: string, patch: Partial<Track>) => {
     setQueue((q) => q.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -282,12 +308,14 @@ export function usePlayer() {
     currentTime,
     duration,
     levels,
+    volume,
     playQueue,
     togglePlay,
     stop,
     next,
     prev,
     seekFraction,
+    setVolume,
     patchTrack,
   };
 }
