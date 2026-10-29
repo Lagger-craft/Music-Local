@@ -257,3 +257,16 @@ library refresh.
   (web/src/hooks/summary.ts, 4 tests) + CompactList in UploadPanel showing the first 6 rows with the rest behind
   an "… and N more" `<details>` toggle; web tests 9/9, `vite build` green. 0 covers applied is correct: download
   thumbnails are not folder-cover names per S3.
+- L18 — User request (verbatim): "Buenas bro, solo me falta agregar un controlador de audio." + clarification
+  answer: "Control de volumen en la UI". Added the retro volume slider (Spec S2 aesthetic): `VolumeControl.tsx`
+  (range 0-100 + LCD readout), wired through Deck/App into `usePlayer`, which now inserts a GainNode between
+  analyser and destination (VU keeps reading program level; gain owns output). Pre-graph / no-Web-Audio fallback
+  drives the element volume; on graph creation the gain is seeded from `volumeRef` and `audio.volume` is pinned
+  to 1 — never double-attenuated. **Slice boundary recorded per commit hook**: commit `040a5ac` is the first
+  commit past the ~400-line review slice (1038 authored lines in 16 commits on main since `origin/feat/music-player`);
+  the feature's delivery strategy (chained PR / per-unit slices) applies from the next commit on. Verification:
+  web 9/9, server 61/61, `tsc -b && vite build`, and an 18/18 headless-Chromium CDP e2e (scratch, not committed)
+  covering pre-play slider → seeded gain, graph order source→analyser→gain→destination, volume 0 with live VU,
+  live 70% change, pause/resume. Native assess (untracked declared via `--intended-untracked`): risk medium,
+  `review_due: false` (`under_budget`) → no review started per entry rule; the independent verifier admission
+  gate refused the run twice (no Risk declared in task text → then explicit do-not-retry), reported unavailable.
